@@ -1,8 +1,11 @@
 package com.onclass.ms_tecnology.infrastructure.handler;
 
+import com.onclass.ms_tecnology.application.usecase.AssociateCapabilityTechnologiesUseCase;
+import com.onclass.ms_tecnology.application.usecase.GetTechnologiesByCapabilityUseCase;
 import com.onclass.ms_tecnology.application.usecase.RegisterTechnologyUseCase;
 import com.onclass.ms_tecnology.domain.exception.BusinessException;
 import com.onclass.ms_tecnology.domain.exception.ErrorCode;
+import com.onclass.ms_tecnology.infrastructure.adapter.rest.dto.AssociateCapabilityRequestDto;
 import com.onclass.ms_tecnology.infrastructure.adapter.rest.dto.TechnologyRequestDto;
 import com.onclass.ms_tecnology.infrastructure.adapter.rest.mapper.TechnologyDtoMapper;
 import com.onclass.ms_tecnology.infrastructure.validation.ValidationDto;
@@ -18,19 +21,45 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class TechnologyHandler {
     private final RegisterTechnologyUseCase registerTechnologyUseCase;
-    private final TechnologyDtoMapper mapper;
+    private final AssociateCapabilityTechnologiesUseCase associateCapabilityTechnologiesUseCase;
+    private final GetTechnologiesByCapabilityUseCase getTechnologiesByCapabilityUseCase;
+    private final TechnologyDtoMapper technologyDtoMapper;
     private final ValidationDto validationDto;
 
-    public Mono<ServerResponse> register(ServerRequest request) {
-        return request.bodyToMono(TechnologyRequestDto.class)
+    public Mono<ServerResponse> register(ServerRequest serverRequest) {
+        return serverRequest.bodyToMono(TechnologyRequestDto.class)
             .switchIfEmpty(Mono.error(new BusinessException(ErrorCode.BODY_IS_REQUIRED)))
             .flatMap(validationDto::validate)
-            .map(mapper::toDomain)
+            .map(technologyDtoMapper::toDomain)
             .flatMap(registerTechnologyUseCase::registerTechnology)
-            .map(mapper::toResponse)
+            .map(technologyDtoMapper::toResponse)
             .flatMap(responseDto -> ServerResponse
                 .status(HttpStatus.CREATED)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(responseDto));
+    }
+
+    public Mono<ServerResponse> associateCapability(ServerRequest serverRequest) {
+        return serverRequest.bodyToMono(AssociateCapabilityRequestDto.class)
+            .switchIfEmpty(Mono.error(new BusinessException(ErrorCode.BODY_IS_REQUIRED)))
+            .flatMap(validationDto::validate)
+            .flatMap(associateCapabilityRequestDto ->
+                associateCapabilityTechnologiesUseCase.associate(
+                    associateCapabilityRequestDto.getCapabilityId(),
+                    associateCapabilityRequestDto.getTechnologyIds()
+                ))
+            .then(ServerResponse.status(HttpStatus.CREATED).build());
+    }
+
+    public Mono<ServerResponse> getByCapabilityId(ServerRequest serverRequest) {
+        Long capabilityId = Long.valueOf(serverRequest.pathVariable("capabilityId"));
+        return getTechnologiesByCapabilityUseCase.getTechnologies(capabilityId)
+            .map(technologyDtoMapper::toResponse)
+            .collectList()
+            .flatMap(technologyResponseDtos ->
+                ServerResponse.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(technologyResponseDtos)
+            );
     }
 }

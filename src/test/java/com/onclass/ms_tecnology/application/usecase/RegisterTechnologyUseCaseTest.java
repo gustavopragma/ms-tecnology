@@ -3,9 +3,10 @@ package com.onclass.ms_tecnology.application.usecase;
 import com.onclass.ms_tecnology.domain.exception.BusinessException;
 import com.onclass.ms_tecnology.domain.model.Technology;
 import com.onclass.ms_tecnology.domain.repository.TechnologyRepository;
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
@@ -20,12 +21,8 @@ public class RegisterTechnologyUseCaseTest {
     @Mock
     private TechnologyRepository technologyRepository;
 
+    @InjectMocks
     private RegisterTechnologyUseCase useCase;
-
-    @BeforeEach
-    void setUp() {
-        useCase = new RegisterTechnologyUseCase(technologyRepository);
-    }
 
     @Test
     void registerTechnologySuccess() {
@@ -50,7 +47,7 @@ public class RegisterTechnologyUseCaseTest {
 
         StepVerifier.create(useCase.registerTechnology(request))
             .expectErrorMatches(ex -> ex instanceof BusinessException &&
-                ((BusinessException) ex).getCode().equals("VE_001"))
+                ((BusinessException) ex).getCode().equals("SE_001"))
             .verify();
 
         verify(technologyRepository, never()).save(any());
