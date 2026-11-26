@@ -1,6 +1,7 @@
 package com.onclass.ms_tecnology.infrastructure.router;
 
 import com.onclass.ms_tecnology.infrastructure.adapter.rest.dto.AssociateCapabilityRequestDto;
+import com.onclass.ms_tecnology.infrastructure.adapter.rest.dto.DeleteTechnologiesByCapabilitiesRequestDto;
 import com.onclass.ms_tecnology.infrastructure.adapter.rest.dto.TechnologyRequestDto;
 import com.onclass.ms_tecnology.infrastructure.adapter.rest.dto.TechnologyResponseDto;
 import com.onclass.ms_tecnology.infrastructure.exceptionHandler.ErrorResponse;
@@ -90,11 +91,33 @@ public class TechnologyRouter {
                         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
                 }
             )
+        ),
+        @RouterOperation(
+            path = "/api/v1/technologies/delete-by-capabilities",
+            method = RequestMethod.POST,
+            beanClass = TechnologyHandler.class,
+            beanMethod = "deleteByCapabilities",
+            operation = @Operation(
+                operationId = "deleteTechnologiesByCapabilities",
+                summary = "Delete technologies associated with deleted capabilities, only if no have other association",
+                tags = {"Technologies"},
+                requestBody = @RequestBody(
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = DeleteTechnologiesByCapabilitiesRequestDto.class))
+                ),
+                responses = {
+                    @ApiResponse(responseCode = "204", description = "technologies deleted successfully"),
+                    @ApiResponse(responseCode = "400", description = "nnvalid capability ids list"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error",
+                        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+                }
+            )
         )
     })
     public RouterFunction<ServerResponse> technologyRoutes(TechnologyHandler handler) {
         return route(POST("/api/v1/technologies"), handler::register)
             .andRoute(POST("/api/v1/technologies/associate-capability"), handler::associateCapability)
-            .andRoute(GET("/api/v1/technologies/by-capability/{capabilityId}"), handler::getByCapabilityId);
+            .andRoute(GET("/api/v1/technologies/by-capability/{capabilityId}"), handler::getByCapabilityId)
+            .andRoute(POST("/api/v1/technologies/delete-by-capabilities"), handler::deleteByCapabilities);
     }
 }

@@ -1,11 +1,13 @@
 package com.onclass.ms_tecnology.infrastructure.handler;
 
 import com.onclass.ms_tecnology.application.usecase.AssociateCapabilityTechnologiesUseCase;
+import com.onclass.ms_tecnology.application.usecase.DeleteTechnologiesByCapabilitiesUseCase;
 import com.onclass.ms_tecnology.application.usecase.GetTechnologiesByCapabilityUseCase;
 import com.onclass.ms_tecnology.application.usecase.RegisterTechnologyUseCase;
 import com.onclass.ms_tecnology.domain.exception.BusinessException;
 import com.onclass.ms_tecnology.domain.exception.ErrorCode;
 import com.onclass.ms_tecnology.infrastructure.adapter.rest.dto.AssociateCapabilityRequestDto;
+import com.onclass.ms_tecnology.infrastructure.adapter.rest.dto.DeleteTechnologiesByCapabilitiesRequestDto;
 import com.onclass.ms_tecnology.infrastructure.adapter.rest.dto.TechnologyRequestDto;
 import com.onclass.ms_tecnology.infrastructure.adapter.rest.mapper.TechnologyDtoMapper;
 import com.onclass.ms_tecnology.infrastructure.validation.ValidationDto;
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -23,6 +26,8 @@ public class TechnologyHandler {
     private final RegisterTechnologyUseCase registerTechnologyUseCase;
     private final AssociateCapabilityTechnologiesUseCase associateCapabilityTechnologiesUseCase;
     private final GetTechnologiesByCapabilityUseCase getTechnologiesByCapabilityUseCase;
+    private final DeleteTechnologiesByCapabilitiesUseCase deleteTechnologiesByCapabilitiesUseCase;
+    private final TransactionalOperator transactionalOperator;
     private final TechnologyDtoMapper technologyDtoMapper;
     private final ValidationDto validationDto;
 
@@ -61,5 +66,15 @@ public class TechnologyHandler {
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(technologyResponseDtos)
             );
+    }
+
+    public Mono<ServerResponse> deleteByCapabilities(ServerRequest serverRequest) {
+        return serverRequest.bodyToMono(DeleteTechnologiesByCapabilitiesRequestDto.class)
+            .switchIfEmpty(Mono.error(new BusinessException(ErrorCode.BODY_IS_REQUIRED)))
+            .flatMap(validationDto::validate)
+            .flatMap(requestDto ->
+                deleteTechnologiesByCapabilitiesUseCase.deleteByCapabilityIds(requestDto.getCapabilityIds())
+                    .as(transactionalOperator::transactional))
+            .then(ServerResponse.noContent().build());
     }
 }
