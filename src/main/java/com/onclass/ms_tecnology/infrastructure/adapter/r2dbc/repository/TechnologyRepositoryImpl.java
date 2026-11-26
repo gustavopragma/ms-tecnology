@@ -50,4 +50,24 @@ public class TechnologyRepositoryImpl implements TechnologyRepository {
             .findTechnologiesByCapabilityId(capabilityId)
             .map(technologyEntityMapper::toDomain);
     }
+
+    @Override
+    public Flux<Long> findTechnologyIdsByCapabilityIds(List<Long> capabilityIds) {
+        return mySqlCapabilityTechnologyRepository.findTechnologyIdsByCapabilityIds(capabilityIds);
+    }
+
+    @Override
+    public Mono<Void> deleteAllByCapabilityIds(List<Long> capabilityIds) {
+        return mySqlCapabilityTechnologyRepository.deleteAllByCapabilityIds(capabilityIds);
+    }
+
+    @Override
+    public Mono<Long> countByTechnologyId(Long technologyId) {
+        return mySqlCapabilityTechnologyRepository.countByTechnologyId(technologyId);
+    }
+
+    @Override
+    public Mono<Void> deleteAllById(List<Long> ids) {
+        return technologyRepository.deleteAllById(ids);
+    }
 }

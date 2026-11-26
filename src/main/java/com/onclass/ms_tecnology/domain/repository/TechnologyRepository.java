@@ -13,4 +13,8 @@ public interface TechnologyRepository {
     Flux<Long> findExistingIds(Collection<Long> technologyIds);
     Mono<Void> associateTechnologiesToCapability(Long capabilityId, List<Long> technologyIds);
     Flux<Technology> findAllByCapabilityId(Long capabilityId);
+    Flux<Long> findTechnologyIdsByCapabilityIds(List<Long> capabilityIds);
+    Mono<Void> deleteAllByCapabilityIds(List<Long> capabilityIds);
+    Mono<Long> countByTechnologyId(Long technologyIds);
+    Mono<Void> deleteAllById(List<Long> ids);
 }

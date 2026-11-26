@@ -1,6 +1,7 @@
 package com.onclass.ms_tecnology.infrastructure.configuration;
 
 import com.onclass.ms_tecnology.application.usecase.AssociateCapabilityTechnologiesUseCase;
+import com.onclass.ms_tecnology.application.usecase.DeleteTechnologiesByCapabilitiesUseCase;
 import com.onclass.ms_tecnology.application.usecase.GetTechnologiesByCapabilityUseCase;
 import com.onclass.ms_tecnology.application.usecase.RegisterTechnologyUseCase;
 import com.onclass.ms_tecnology.domain.repository.TechnologyRepository;
@@ -24,6 +25,11 @@ public class BeanConfiguration {
     @Bean
     public GetTechnologiesByCapabilityUseCase getTechnologiesByCapabilityUseCase(TechnologyRepository technologyRepository) {
         return new GetTechnologiesByCapabilityUseCase(technologyRepository);
+    }
+
+    @Bean
+    public DeleteTechnologiesByCapabilitiesUseCase deleteTechnologiesByCapabilitiesUseCase(TechnologyRepository technologyRepository) {
+        return new DeleteTechnologiesByCapabilitiesUseCase(technologyRepository);
     }
 
     @Bean
